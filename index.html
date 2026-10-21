@@ -2,1082 +2,592 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>StockMeta AI</title>
-
 <style>
+:root{--bg:#07070c;--panel:#0f0f18;--panel2:#151522;--line:#23233a;--text:#f3f3fa;--mut:#8b8ba7;--a:#7c5cff;--b:#ff5c8a;--ok:#3ddc97;--err:#ff6b6b;--grad:linear-gradient(135deg,#7c5cff,#ff5c8a)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,Segoe UI,Arial,sans-serif;background:#080808;color:#fff;min-height:100vh}
-button,input,select,textarea{font:inherit}
+body{font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(700px 360px at 12% -5%,#7c5cff26,transparent),radial-gradient(600px 320px at 92% 0,#ff5c8a1f,transparent)}
+button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
-.header{height:72px;border-bottom:1px solid #242424;background:#0c0c0c;display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:50}
-.logo{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:800}
-.logo-icon{width:36px;height:36px;border-radius:10px;background:#e50914;display:flex;align-items:center;justify-content:center;font-weight:900}
-.nav{display:flex;gap:10px}
-.btn{border:1px solid #303030;background:#151515;color:#fff;padding:10px 16px;border-radius:9px;transition:.2s}
-.btn:hover{background:#222}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn-red{background:#e50914;border-color:#e50914}
-.btn-red:hover{background:#f6121d}
-.btn-green{background:#137333;border-color:#137333}
-.container{width:90%;max-width:1250px;margin:auto}
-.hero{text-align:center;padding:70px 15px 45px}
-.badge{display:inline-block;background:#171717;border:1px solid #303030;color:#ff4b54;padding:7px 13px;border-radius:50px;font-size:13px;margin-bottom:20px}
-.hero h1{font-size:clamp(38px,6vw,68px);line-height:1;margin-bottom:20px;letter-spacing:-2px}
-.hero h1 span{color:#e50914}
-.hero p{color:#999;max-width:700px;margin:auto;font-size:17px;line-height:1.7}
-.upload-box{border:2px dashed #383838;border-radius:18px;padding:55px 20px;text-align:center;background:#0e0e0e;transition:.2s}
-.upload-box.drag{border-color:#e50914;background:#16090a}
-.upload-icon{font-size:45px;margin-bottom:15px}
-.upload-box h2{margin-bottom:8px}
-.upload-box p{color:#888;margin-bottom:22px}
-.file-input{display:none}
-.upload-info{margin-top:15px;color:#777;font-size:13px}
-.toolbar{margin:30px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.counter{color:#aaa}
-.progress{color:#888;font-size:13px;margin-top:5px}
-.toolbar-right{display:flex;gap:8px;flex-wrap:wrap}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;padding-bottom:80px}
-.card{background:#101010;border:1px solid #262626;border-radius:15px;overflow:hidden}
-.card-image{width:100%;height:210px;object-fit:cover;display:block;background:#181818}
-.card-body{padding:17px}
-.card-name{font-size:14px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:13px}
-.status{padding:10px;border-radius:8px;background:#171717;color:#999;font-size:13px;margin-bottom:12px}
-.status.loading{color:#ffb3b6;background:#1d0d0e}
-.status.success{color:#63e68a;background:#0c1d12}
-.status.error{color:#ff7777;background:#210d0d}
-.meta{display:none}
-.meta.show{display:block}
-.meta-item{margin-bottom:13px}
-.meta-label{font-size:11px;text-transform:uppercase;color:#666;margin-bottom:5px}
-.meta-value{font-size:14px;line-height:1.5;color:#ddd;word-break:break-word}
-.keywords{display:flex;flex-wrap:wrap;gap:5px}
-.keyword{background:#1c1c1c;border:1px solid #303030;color:#bbb;padding:4px 7px;border-radius:5px;font-size:11px}
-.card-actions{display:flex;gap:7px;margin-top:15px}
-.card-actions button{flex:1}
-.empty{text-align:center;padding:70px 20px;color:#555}
-.empty-icon{font-size:45px;margin-bottom:15px}
-footer{border-top:1px solid #222;padding:30px;text-align:center;color:#555;font-size:13px}
-
-/* SETTINGS */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:90;display:none}
-.overlay.show{display:block}
-.settings{position:fixed;right:0;top:0;height:100vh;width:min(470px,95%);background:#0e0e0e;border-left:1px solid #292929;z-index:100;transform:translateX(100%);transition:.3s;overflow-y:auto}
-.settings.open{transform:translateX(0)}
-.settings-head{padding:22px;border-bottom:1px solid #242424;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#0e0e0e;z-index:2}
-.close{background:none;border:0;color:#aaa;font-size:25px}
-.settings-body{padding:22px}
-.section{margin-bottom:25px}
-.section-title{font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
-.field{margin-bottom:15px}
-.field label{display:block;font-size:13px;color:#aaa;margin-bottom:7px}
-input,select,textarea{width:100%;background:#151515;border:1px solid #303030;color:#fff;border-radius:8px;padding:11px 12px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:#e50914}
-textarea{min-height:100px;resize:vertical}
-.api-box{background:#121212;border:1px solid #292929;padding:15px;border-radius:12px}
-.api-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.api-title span{color:#63e68a;font-size:11px}
-.api-help{color:#777;font-size:12px;line-height:1.5;margin-bottom:13px}
-.get-key{display:block;text-align:center;margin-bottom:12px;color:#ff525a;text-decoration:none;font-size:13px}
-.api-row{display:flex;gap:7px;margin-bottom:8px}
-.api-row input{flex:1}
-.api-remove{width:42px;background:#211010;border:1px solid #432020;color:#ff6c6c;border-radius:8px}
-.api-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.save-api{width:100%;margin-top:9px}
-.key-status{font-size:12px;color:#777;margin-top:10px;line-height:1.5}
-.ai-mode{background:#0e1711;border:1px solid #203a27;color:#79e59b;padding:12px;border-radius:9px;font-size:12px;line-height:1.5;margin-top:12px}
-.model-box{margin:16px 0 4px;padding-top:14px;border-top:1px solid #262626}
-.model-hint{color:#777;font-size:12px;line-height:1.5;margin-top:7px}
-
-/* MODAL */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
-.modal.show{display:flex}
-.modal-box{width:min(700px,100%);max-height:90vh;overflow-y:auto;background:#111;border:1px solid #2d2d2d;border-radius:15px}
-.modal-head{padding:18px;border-bottom:1px solid #282828;display:flex;justify-content:space-between}
-.modal-body{padding:18px}
-.modal-footer{padding:15px 18px;border-top:1px solid #282828;display:flex;justify-content:flex-end;gap:8px}
-
-/* SUPPORT */
-.support{position:fixed;right:22px;bottom:22px;z-index:70}
-.support-btn{border:0;background:#20c76a;color:#fff;padding:12px 17px;border-radius:50px;font-weight:700}
-.support-panel{display:none;position:absolute;right:0;bottom:55px;width:250px;background:#111;border:1px solid #303030;border-radius:13px;padding:16px}
-.support-panel.show{display:block}
-.support-panel h3{margin-bottom:7px}
-.support-panel p{color:#888;font-size:13px;line-height:1.5;margin-bottom:12px}
-.whatsapp{display:block;text-align:center;background:#20c76a;color:#fff;text-decoration:none;padding:10px;border-radius:8px;font-weight:700}
-
-@media(max-width:600px){
-  .header{padding:0 4%}
-  .hero{padding-top:45px}
-  .hero h1{font-size:42px}
-  .toolbar{align-items:stretch}
-  .toolbar-right{width:100%}
-  .toolbar-right button{flex:1}
-}
+.top{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:14px 5%;background:#07070ccc;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
+.logo i{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-style:normal;font-weight:900}
+.row{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:10px 16px;border-radius:11px;font-weight:600;font-size:14px;transition:.18s}
+.btn:hover{border-color:#3a3a5c;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.pri{background:var(--grad);border:0}
+.btn.ok{background:#113b2a;border-color:#1d6a49;color:#8ff0c3}
+.wrap{width:92%;max-width:1200px;margin:auto}
+.hero{text-align:center;padding:56px 0 30px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;color:#c9bdff;background:#7c5cff1f;border:1px solid #7c5cff55;padding:6px 14px;border-radius:99px;margin-bottom:18px}
+h1{font-size:clamp(34px,6vw,60px);line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px}
+h1 b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);max-width:620px;margin:auto;line-height:1.7}
+.drop{border:2px dashed #34345a;border-radius:20px;padding:42px 20px;text-align:center;background:#0d0d17;transition:.2s;cursor:pointer}
+.drop:hover,.drop.drag{border-color:var(--a);background:#12102a}
+.drop .ic{font-size:40px;margin-bottom:10px}
+.drop p{color:var(--mut);font-size:14px;margin:6px 0 16px}
+.bar{margin:26px 0 8px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.cnt{font-weight:700}
+.sub{color:var(--mut);font-size:13px;margin-top:3px}
+.track{height:6px;background:var(--panel2);border-radius:9px;overflow:hidden;margin-bottom:22px}
+.track i{display:block;height:100%;width:0;background:var(--grad);transition:width .3s}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;padding-bottom:90px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.card img{width:100%;height:200px;object-fit:cover;display:block;background:#000}
+.cb{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.nm{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st{font-size:13px;padding:9px 12px;border-radius:10px;background:var(--panel2);color:var(--mut)}
+.st.loading{color:#d6ccff;background:#7c5cff1c}
+.st.success{color:var(--ok);background:#3ddc9718}
+.st.error{color:var(--err);background:#ff6b6b17}
+.lb{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:#666685;margin-bottom:4px}
+.vl{font-size:14px;line-height:1.55;word-break:break-word}
+.kw{display:flex;flex-wrap:wrap;gap:5px}
+.kw span{background:var(--panel2);border:1px solid var(--line);color:#c5c5dd;font-size:11px;padding:3px 8px;border-radius:6px}
+.acts{display:flex;gap:7px;margin-top:auto}
+.acts .btn{flex:1;padding:9px}
+.empty{text-align:center;color:#55556f;padding:50px 0 80px}
+.empty .ic{font-size:42px;margin-bottom:8px}
+.ov{position:fixed;inset:0;background:#000a;z-index:80;display:none}
+.ov.on{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(480px,100%);background:var(--panel);border-left:1px solid var(--line);z-index:90;transform:translateX(100%);transition:.28s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dh,.df{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.df{border:0;border-top:1px solid var(--line)}
+.db{padding:22px;overflow-y:auto;flex:1}
+.x{background:none;border:0;font-size:26px;color:var(--mut)}
+.sec{margin-bottom:26px}
+.sec h3{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:13px;color:var(--mut);margin-bottom:6px}
+input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--a)}
+textarea{min-height:90px;resize:vertical}
+.kr{display:flex;gap:6px;margin-bottom:8px}
+.kr button{width:42px;border-radius:10px;border:1px solid #4a2222;background:#241212;color:var(--err)}
+.hint{font-size:12px;color:var(--mut);line-height:1.6;margin-top:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.modal{position:fixed;inset:0;background:#000b;z-index:120;display:none;align-items:center;justify-content:center;padding:18px}
+.modal.on{display:flex}
+.mb{width:min(680px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px}
+.mb .dh{border-bottom:1px solid var(--line)}
+.mb .db{padding:20px}
+.toasts{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(92%,460px)}
+.t{background:#1b1b2c;border:1px solid #34345a;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 10px 30px #0008;width:100%}
+.t.err{border-color:#7a2d2d;color:#ffb4b4}
+.t.ok{border-color:#1d6a49;color:#9af0c8}
+.sup{position:fixed;right:20px;bottom:20px;z-index:60}
+.sup a{display:block;background:#1fbf6a;color:#fff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:99px;box-shadow:0 8px 24px #1fbf6a44}
+footer{text-align:center;color:#4c4c68;font-size:13px;padding:26px;border-top:1px solid var(--line)}
+@media(max-width:600px){.top{padding:12px 4%}.bar .row{width:100%}.bar .btn{flex:1}.sup{bottom:84px}}
 </style>
 </head>
-
 <body>
 
-<header class="header">
-  <div class="logo">
-    <div class="logo-icon">S</div>
-    <span>StockMeta AI</span>
-  </div>
-  <div class="nav">
-    <button class="btn" onclick="openSettings()">⚙ Settings</button>
-    <button class="btn btn-red" onclick="openFilePicker()">＋ Upload</button>
+<header class="top">
+  <div class="logo"><i>S</i>StockMeta AI</div>
+  <div class="row">
+    <button class="btn" onclick="openDrawer()">⚙ Settings</button>
+    <button class="btn pri" onclick="pick()">＋ Upload</button>
   </div>
 </header>
 
-<main>
+<main class="wrap">
+  <section class="hero">
+    <span class="pill">✨ AI STOCK METADATA GENERATOR</span>
+    <h1>Create <b>Stock Metadata</b><br>in Seconds</h1>
+    <p>Title, description, keywords and category for your stock images — powered by any vision model on OpenRouter.</p>
+  </section>
 
-<section class="hero">
-  <div class="badge">AI Stock Metadata Generator</div>
-  <h1>Create <span>Stock Metadata</span><br>in Seconds</h1>
-  <p>
-    Generate SEO-friendly titles, descriptions, keywords and categories
-    for your stock images using any vision model on OpenRouter.
-  </p>
-</section>
-
-<section class="container">
-
-<div class="upload-box" id="uploadBox" onclick="openFilePicker()">
-  <div class="upload-icon">🖼️</div>
-  <h2>Upload Your Images</h2>
-  <p>PNG, JPG, JPEG or WEBP — up to 500 images</p>
-  <button class="btn btn-red" onclick="event.stopPropagation();openFilePicker()">Choose Images</button>
-  <div class="upload-info">
-    Upload first. Metadata generation starts only when you click Generate Metadata.
+  <div class="drop" id="drop" onclick="pick()">
+    <div class="ic">🖼️</div>
+    <h2>Drop your images here</h2>
+    <p>PNG, JPG or WEBP — up to 500 images</p>
+    <button class="btn pri" onclick="event.stopPropagation();pick()">Choose Images</button>
   </div>
-</div>
+  <input id="file" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
 
-<input id="fileInput" class="file-input" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" multiple>
-
-<div class="toolbar">
-  <div>
-    <div class="counter" id="counter">0 / 500 images</div>
-    <div class="progress" id="progress"></div>
+  <div class="bar">
+    <div><div class="cnt" id="cnt">0 / 500 images</div><div class="sub" id="sub"></div></div>
+    <div class="row">
+      <button class="btn pri" id="genAll" onclick="generateAll()">✨ Generate Metadata</button>
+      <button class="btn" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn" onclick="clearAll()">Clear</button>
+    </div>
   </div>
-  <div class="toolbar-right">
-    <button class="btn btn-red" id="generateAllBtn" onclick="generateAll()">✨ Generate Metadata</button>
-    <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn" onclick="clearAll()">Clear All</button>
-  </div>
-</div>
+  <div class="track"><i id="prog"></i></div>
 
-<div id="grid" class="grid"></div>
-
-<div id="emptyState" class="empty">
-  <div class="empty-icon">📷</div>
-  <h3>No images uploaded</h3>
-  <p>Upload images first, then click Generate Metadata.</p>
-</div>
-
-</section>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty"><div class="ic">📷</div><h3>No images yet</h3><p>Upload images, then click Generate Metadata.</p></div>
 </main>
 
-<footer>
-  StockMeta AI © 2026 — Browser-based AI Stock Metadata Generator
-</footer>
+<footer>StockMeta AI © 2026</footer>
 
+<div class="sup"><a href="https://wa.me/8801968696236?text=Hello%20StockMeta%20AI%20Support" target="_blank" rel="noopener">💬 Support</a></div>
 
-<!-- SETTINGS -->
-<div class="overlay" id="overlay" onclick="closeSettings()"></div>
-
-<aside class="settings" id="settings">
-
-<div class="settings-head">
-  <h2>Settings</h2>
-  <button class="close" onclick="closeSettings()">×</button>
-</div>
-
-<div class="settings-body">
-
-<!-- AI SETTINGS -->
-<div class="section">
-
-<div class="section-title">AI Provider</div>
-
-<div class="api-box">
-
-  <div class="api-title">
-    <strong>🟠 OpenRouter</strong>
-    <span>ACTIVE</span>
-  </div>
-
-  <div class="api-help">
-    Add your OpenRouter API key(s). You can add multiple keys — they are rotated automatically.
-    Any vision-capable model on OpenRouter can be used.
-  </div>
-
-  <a class="get-key" href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">
-    🔑 Get OpenRouter API Key
-  </a>
-
-  <div id="openrouterKeys"></div>
-
-  <div class="api-actions">
-    <button class="btn" onclick="addApiKey()">＋ Add Key</button>
-    <button class="btn btn-green" onclick="testApiKeys()">🧪 Test</button>
-  </div>
-
-  <div class="model-box">
-    <div class="field" style="margin-bottom:0">
-      <label>Model (any OpenRouter model ID)</label>
-      <input id="modelInput" list="modelList" placeholder="e.g. google/gemma-3-27b-it:free" autocomplete="off">
-      <datalist id="modelList"></datalist>
-      <div class="model-hint">
-        Type any model ID, or click the button below to load all models that can read images.
-        Model must support image input. IDs ending with <b>:free</b> are free models.
+<div class="ov" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><h2>Settings</h2><button class="x" onclick="closeDrawer()">×</button></div>
+  <div class="db">
+    <div class="sec">
+      <h3>OpenRouter</h3>
+      <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:#b9a8ff;font-size:13px;text-decoration:none;display:block;margin-bottom:12px">🔑 Get an API key →</a>
+      <div id="keys"></div>
+      <div class="two">
+        <button class="btn" onclick="addKey()">＋ Add key</button>
+        <button class="btn ok" onclick="testKey()">🧪 Test</button>
       </div>
+      <div class="f" style="margin-top:18px">
+        <label>Model (any OpenRouter model ID)</label>
+        <input id="model" list="models" placeholder="google/gemma-3-27b-it:free" autocomplete="off">
+        <datalist id="models"></datalist>
+        <div class="hint">The model must accept images. IDs ending in <b>:free</b> are free.</div>
+      </div>
+      <div class="two" style="margin-top:0">
+        <button class="btn" onclick="loadModels(false)">📥 Vision models</button>
+        <button class="btn" onclick="loadModels(true)">🆓 Free only</button>
+      </div>
+      <div class="hint" id="mstat"></div>
     </div>
 
-    <div class="api-actions">
-      <button class="btn" onclick="loadModels(false)">📥 Load Vision Models</button>
-      <button class="btn" onclick="loadModels(true)">🆓 Load Free Only</button>
+    <div class="sec">
+      <h3>Stock settings</h3>
+      <div class="f"><label>Stock site</label><select id="site"><option>Adobe Stock</option><option>Shutterstock</option><option>Freepik</option><option>iStock</option><option>Other</option></select></div>
+      <div class="f"><label>Title style</label><select id="tstyle"><option value="SEO">SEO optimized</option><option value="Simple">Simple</option><option value="Descriptive">Descriptive</option></select></div>
+      <div class="f"><label>Description length</label><select id="dlen"><option>Short</option><option selected>Medium</option><option>Long</option></select></div>
+      <div class="f"><label>Keyword count</label><input id="kwn" type="number" min="5" max="50" value="35"></div>
+      <div class="f"><label>Parallel requests</label><input id="par" type="number" min="1" max="8" value="2"></div>
+      <div class="f"><label>Custom instructions</label><textarea id="custom" placeholder="Example: Use commercial stock photography keywords."></textarea></div>
     </div>
-    <div class="key-status" id="modelStatus"></div>
   </div>
-
-  <button class="btn btn-red save-api" onclick="saveAllApiKeys()">💾 Save Keys &amp; Model</button>
-
-  <div class="key-status" id="keyStatus"></div>
-
-  <div class="ai-mode">
-    ⚡ <b>OpenRouter Mode</b><br>
-    One key, hundreds of models. If a request fails, the next key is tried automatically.
-  </div>
-
-</div>
-
-</div>
-
-
-<!-- STOCK SETTINGS -->
-<div class="section">
-
-<div class="section-title">Stock Settings</div>
-
-<div class="field">
-<label>Stock Site</label>
-<select id="stockSite">
-<option>Adobe Stock</option>
-<option>Shutterstock</option>
-<option>Freepik</option>
-<option>iStock</option>
-<option>Other</option>
-</select>
-</div>
-
-<div class="field">
-<label>Title Style</label>
-<select id="titleStyle">
-<option value="SEO">SEO Optimized</option>
-<option value="Simple">Simple</option>
-<option value="Descriptive">Descriptive</option>
-</select>
-</div>
-
-<div class="field">
-<label>Description Length</label>
-<select id="descriptionLength">
-<option value="Short">Short</option>
-<option value="Medium">Medium</option>
-<option value="Long">Long</option>
-</select>
-</div>
-
-<div class="field">
-<label>Keyword Count</label>
-<input id="keywordCount" type="number" min="5" max="50" value="35">
-</div>
-
-<div class="field">
-<label>Parallel Requests</label>
-<input id="concurrency" type="number" min="1" max="8" value="2">
-</div>
-
-<div class="field">
-<label>Custom Instructions</label>
-<textarea id="customInstructions" placeholder="Example: Use commercial stock photography keywords."></textarea>
-</div>
-
-<button class="btn btn-red" style="width:100%" onclick="saveSettings()">💾 Save Settings</button>
-
-</div>
-
-</div>
+  <div class="df"><span class="hint" style="margin:0">Saved in this browser</span><button class="btn pri" onclick="saveAll()">💾 Save</button></div>
 </aside>
 
-
-<!-- EDIT MODAL -->
-<div class="modal" id="editModal">
-<div class="modal-box">
-
-<div class="modal-head">
-<strong>Edit Metadata</strong>
-<button class="close" onclick="closeEdit()">×</button>
+<div class="modal" id="modal">
+  <div class="mb">
+    <div class="dh"><strong>Edit metadata</strong><button class="x" onclick="closeEdit()">×</button></div>
+    <div class="db">
+      <div class="f"><label>Title</label><input id="eT"></div>
+      <div class="f"><label>Description</label><textarea id="eD"></textarea></div>
+      <div class="f"><label>Keywords (comma separated)</label><textarea id="eK"></textarea></div>
+      <div class="f"><label>Category</label><input id="eC"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeEdit()">Cancel</button><button class="btn pri" onclick="saveEdit()">Save changes</button></div>
+    </div>
+  </div>
 </div>
 
-<div class="modal-body">
-<div class="field"><label>Title</label><input id="editTitle"></div>
-<div class="field"><label>Description</label><textarea id="editDescription"></textarea></div>
-<div class="field"><label>Keywords</label><textarea id="editKeywords"></textarea></div>
-<div class="field"><label>Category</label><input id="editCategory"></div>
-</div>
-
-<div class="modal-footer">
-<button class="btn" onclick="closeEdit()">Cancel</button>
-<button class="btn btn-red" onclick="saveEdit()">Save Changes</button>
-</div>
-
-</div>
-</div>
-
-
-<!-- SUPPORT -->
-<div class="support">
-
-<div class="support-panel" id="supportPanel">
-<h3>Need Support?</h3>
-<p>Contact StockMeta AI support directly on WhatsApp.</p>
-<a class="whatsapp" href="https://wa.me/8801968696236?text=Hello%20StockMeta%20AI%20Support" target="_blank" rel="noopener noreferrer">
-  💬 WhatsApp Support
-</a>
-</div>
-
-<button class="support-btn" onclick="toggleSupport()">💬 Support</button>
-
-</div>
-
+<div class="toasts" id="toasts"></div>
 
 <script>
-
-/* =========================================================
-   CONFIG
-========================================================= */
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
-
+const $ = id => document.getElementById(id);
+const URL_CHAT = "https://openrouter.ai/api/v1/chat/completions";
+const URL_MODELS = "https://openrouter.ai/api/v1/models";
 const DEFAULT_MODEL = "google/gemma-3-27b-it:free";
+const MAX = 500, MAXPX = 1600, RETRIES = 2;
 
-const MAX_IMAGES = 500;
-const MAX_IMAGE_SIZE = 1600;
-const JPEG_QUALITY = 0.82;
-const MAX_RETRIES = 2;
+/* ---------- safe storage (works even if localStorage is blocked) ---------- */
+const mem = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch{ return mem[k] ?? null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch{ mem[k] = v; } }
+};
 
-
-/* =========================================================
-   STORAGE
-========================================================= */
-
-const KEY_STORAGE = "stockmeta_openrouter_keys";
-const MODEL_STORAGE = "stockmeta_openrouter_model";
-const SETTINGS_STORAGE = "stockmeta_settings";
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let images = [];
-let apiKeys = [""];
-let editingIndex = null;
-let generationRunning = false;
-let keyPointer = 0;
-
-
-/* =========================================================
-   ELEMENTS
-========================================================= */
-
-const fileInput = document.getElementById("fileInput");
-const uploadBox = document.getElementById("uploadBox");
-const grid = document.getElementById("grid");
-const emptyState = document.getElementById("emptyState");
-const counter = document.getElementById("counter");
-const progress = document.getElementById("progress");
-const generateAllBtn = document.getElementById("generateAllBtn");
-const modelInput = document.getElementById("modelInput");
-
-
-/* =========================================================
-   INIT
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSettings();
-  loadSavedApiKeys();
-  renderKeys();
-  updateUI();
-});
-
-
-/* =========================================================
-   API KEY + MODEL STORAGE
-========================================================= */
-
-function loadSavedApiKeys(){
-  try{
-    const saved = localStorage.getItem(KEY_STORAGE);
-    if(saved){
-      const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed) && parsed.length) apiKeys = parsed;
-    }
-  }catch(error){
-    console.warn("Could not load saved API keys", error);
-  }
-
-  try{
-    modelInput.value = localStorage.getItem(MODEL_STORAGE) || DEFAULT_MODEL;
-  }catch{
-    modelInput.value = DEFAULT_MODEL;
-  }
+/* ---------- toasts + global error display ---------- */
+function toast(msg, type){
+  const d = document.createElement("div");
+  d.className = "t " + (type || "");
+  d.textContent = msg;
+  $("toasts").appendChild(d);
+  setTimeout(() => d.remove(), type === "err" ? 7000 : 3200);
 }
+window.addEventListener("error", e => toast("Script error: " + e.message, "err"));
+window.addEventListener("unhandledrejection", e => toast("Error: " + (e.reason?.message || e.reason), "err"));
+
+/* ---------- state ---------- */
+let images = [], keys = [""], editing = null, running = false, kp = 0;
+
+/* ---------- init ---------- */
+function init(){
+  try{
+    const k = JSON.parse(store.get("sm_keys") || "[]");
+    if(Array.isArray(k) && k.length) keys = k;
+  }catch{}
+  $("model").value = store.get("sm_model") || DEFAULT_MODEL;
+  try{
+    const s = JSON.parse(store.get("sm_settings") || "{}");
+    for(const id of ["site","tstyle","dlen","kwn","par","custom"]) if(s[id] !== undefined && s[id] !== "") $(id).value = s[id];
+  }catch{}
+  renderKeys();
+  render();
+}
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+
+/* ---------- drawer ---------- */
+function openDrawer(){ $("ov").classList.add("on"); $("drawer").classList.add("on"); }
+function closeDrawer(){ $("ov").classList.remove("on"); $("drawer").classList.remove("on"); }
 
 function renderKeys(){
-  const container = document.getElementById("openrouterKeys");
-  container.innerHTML = "";
-
-  apiKeys.forEach((key,index) => {
-    const row = document.createElement("div");
-    row.className = "api-row";
-
-    const input = document.createElement("input");
-    input.type = "password";
-    input.value = key;
-    input.placeholder = "Enter OpenRouter API Key (sk-or-...)";
-    input.oninput = function(){ apiKeys[index] = this.value.trim(); };
-    row.appendChild(input);
-
-    if(apiKeys.length > 1){
-      const remove = document.createElement("button");
-      remove.className = "api-remove";
-      remove.textContent = "✕";
-      remove.onclick = () => removeApiKey(index);
-      row.appendChild(remove);
+  const box = $("keys");
+  box.innerHTML = "";
+  keys.forEach((k,i) => {
+    const r = document.createElement("div");
+    r.className = "kr";
+    const inp = document.createElement("input");
+    inp.type = "password";
+    inp.value = k;
+    inp.placeholder = "sk-or-...";
+    inp.oninput = () => { keys[i] = inp.value.trim(); };
+    r.appendChild(inp);
+    if(keys.length > 1){
+      const b = document.createElement("button");
+      b.textContent = "✕";
+      b.onclick = () => { keys.splice(i,1); renderKeys(); };
+      r.appendChild(b);
     }
-
-    container.appendChild(row);
+    box.appendChild(r);
   });
 }
+function addKey(){ keys.push(""); renderKeys(); }
+const getKeys = () => keys.map(k => k.trim()).filter(Boolean);
+const getModel = () => ($("model").value || "").trim() || DEFAULT_MODEL;
+const getPar = () => Math.max(1, Math.min(8, Number($("par").value) || 2));
 
-function addApiKey(){
-  apiKeys.push("");
-  renderKeys();
+function saveAll(){
+  store.set("sm_keys", JSON.stringify(getKeys()));
+  store.set("sm_model", getModel());
+  const s = {};
+  for(const id of ["site","tstyle","dlen","kwn","par","custom"]) s[id] = $(id).value;
+  store.set("sm_settings", JSON.stringify(s));
+  toast("Saved ✓ — " + getKeys().length + " key(s), model: " + getModel(), "ok");
+  closeDrawer();
 }
 
-function removeApiKey(index){
-  apiKeys.splice(index,1);
-  if(!apiKeys.length) apiKeys.push("");
-  renderKeys();
-}
+/* ---------- OpenRouter helpers ---------- */
+const headers = key => ({ "Authorization": "Bearer " + key, "Content-Type": "application/json" });
 
-function getModel(){
-  return (modelInput.value || "").trim() || DEFAULT_MODEL;
-}
-
-function saveAllApiKeys(){
-  const clean = apiKeys.map(k => k.trim()).filter(Boolean);
-  const model = getModel();
-
-  localStorage.setItem(KEY_STORAGE, JSON.stringify(clean));
-  localStorage.setItem(MODEL_STORAGE, model);
-
-  document.getElementById("keyStatus").textContent =
-    `Saved: ${clean.length} key(s) • Model: ${model}`;
-
-  alert(`Saved successfully!\n\nKeys: ${clean.length}\nModel: ${model}`);
-}
-
-function getSavedKeys(){
+function errText(txt){
   try{
-    const saved = localStorage.getItem(KEY_STORAGE);
-    if(saved){
-      const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed)) return parsed.filter(Boolean);
-    }
-  }catch{}
-  return [];
+    const j = JSON.parse(txt);
+    let m = j?.error?.message || txt;
+    const raw = j?.error?.metadata?.raw;
+    if(typeof raw === "string") m += " — " + raw;
+    return m;
+  }catch{ return txt; }
 }
 
-/* Typed-but-unsaved keys still work in the current session. */
-function getSessionKeys(){
-  const typed = apiKeys.map(k => k.trim()).filter(Boolean);
-  if(typed.length) return typed;
-  return getSavedKeys();
+async function testKey(){
+  const ks = getKeys();
+  if(!ks.length) return toast("Add an API key first.", "err");
+  toast("Testing…");
+  try{
+    const r = await fetch(URL_CHAT, {
+      method:"POST", headers: headers(ks[0]),
+      body: JSON.stringify({ model:getModel(), messages:[{role:"user",content:"Reply with exactly: OK"}], max_tokens:20, temperature:0 })
+    });
+    const t = await r.text();
+    if(!r.ok) throw new Error("OpenRouter " + r.status + ": " + errText(t));
+    toast("Key works ✓  Model: " + getModel(), "ok");
+  }catch(e){ toast("Test failed: " + friendly(e), "err"); }
 }
-
-
-/* =========================================================
-   LOAD MODELS FROM OPENROUTER
-========================================================= */
 
 async function loadModels(freeOnly){
-  const status = document.getElementById("modelStatus");
-  status.textContent = "Loading models...";
-
+  $("mstat").textContent = "Loading…";
   try{
-    const response = await fetch(OPENROUTER_MODELS_URL);
-    if(!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const json = await response.json();
-    let list = (json.data || []).filter(m => {
-      const inputs = m?.architecture?.input_modalities || [];
-      return inputs.includes("image");
-    });
-
-    if(freeOnly){
-      list = list.filter(m => String(m.id).endsWith(":free"));
-    }
-
+    const r = await fetch(URL_MODELS);
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    let list = (j.data || []).filter(m => (m?.architecture?.input_modalities || []).includes("image"));
+    if(freeOnly) list = list.filter(m => String(m.id).endsWith(":free"));
     list.sort((a,b) => String(a.id).localeCompare(String(b.id)));
-
-    const datalist = document.getElementById("modelList");
-    datalist.innerHTML = "";
-
-    list.forEach(m => {
-      const opt = document.createElement("option");
-      opt.value = m.id;
-      opt.label = m.name || m.id;
-      datalist.appendChild(opt);
-    });
-
-    status.textContent =
-      `${list.length} ${freeOnly ? "free " : ""}vision model(s) loaded. Click the model box and pick one.`;
-
-  }catch(error){
-    status.textContent =
-      "Could not load model list (" + (error.message || "error") + "). You can still type a model ID manually.";
+    $("models").innerHTML = list.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.id)}</option>`).join("");
+    $("mstat").textContent = list.length + (freeOnly ? " free" : "") + " vision model(s) loaded — click the model box to pick one.";
+  }catch(e){
+    $("mstat").textContent = "Could not load list (" + e.message + "). You can type a model ID manually.";
   }
 }
 
-
-/* =========================================================
-   TEST API KEY
-========================================================= */
-
-async function testApiKeys(){
-  const keys = getSessionKeys();
-
-  if(!keys.length){
-    alert("Please enter at least one OpenRouter API key first.");
-    return;
-  }
-
-  try{
-    await callOpenRouterText(keys[0]);
-    alert("OpenRouter API key test successful!\nModel: " + getModel());
-  }catch(error){
-    alert("OpenRouter test failed:\n\n" + getFriendlyError(error));
-  }
-}
-
-async function callOpenRouterText(key){
-  const response = await fetch(OPENROUTER_URL,{
-    method:"POST",
-    headers: buildHeaders(key),
-    body: JSON.stringify({
-      model:getModel(),
-      messages:[{ role:"user", content:"Reply with exactly: OK" }],
-      temperature:0,
-      max_tokens:20
-    })
-  });
-
-  const text = await response.text();
-
-  if(!response.ok){
-    throw new Error(`OpenRouter ${response.status}: ${extractMessage(text)}`);
-  }
-
-  return true;
-}
-
-function buildHeaders(key){
-  return {
-    "Authorization":`Bearer ${key}`,
-    "Content-Type":"application/json",
-    "HTTP-Referer": location.origin && location.origin !== "null"
-      ? location.origin
-      : "https://stockmeta.ai",
-    "X-Title":"StockMeta AI"
-  };
-}
-
-function extractMessage(responseText){
-  try{
-    const json = JSON.parse(responseText);
-    let msg = json?.error?.message || responseText;
-    const raw = json?.error?.metadata?.raw;
-    if(raw && typeof raw === "string") msg += " — " + raw;
-    return msg;
-  }catch{
-    return responseText;
-  }
-}
-
-
-/* =========================================================
-   SETTINGS PANEL
-========================================================= */
-
-function openSettings(){
-  document.getElementById("overlay").classList.add("show");
-  document.getElementById("settings").classList.add("open");
-}
-
-function closeSettings(){
-  document.getElementById("overlay").classList.remove("show");
-  document.getElementById("settings").classList.remove("open");
-}
-
-function saveSettings(){
-  const settings = {
-    stockSite: document.getElementById("stockSite").value,
-    titleStyle: document.getElementById("titleStyle").value,
-    descriptionLength: document.getElementById("descriptionLength").value,
-    keywordCount: document.getElementById("keywordCount").value,
-    concurrency: document.getElementById("concurrency").value,
-    customInstructions: document.getElementById("customInstructions").value
-  };
-
-  localStorage.setItem(SETTINGS_STORAGE, JSON.stringify(settings));
-  localStorage.setItem(MODEL_STORAGE, getModel());
-
-  alert("Settings saved!");
-  closeSettings();
-}
-
-function loadSettings(){
-  const saved = localStorage.getItem(SETTINGS_STORAGE);
-  if(!saved) return;
-
-  try{
-    const s = JSON.parse(saved);
-    ["stockSite","titleStyle","descriptionLength","keywordCount","concurrency","customInstructions"]
-      .forEach(id => {
-        if(s[id] !== undefined && s[id] !== "")
-          document.getElementById(id).value = s[id];
-      });
-  }catch{}
-}
-
-function getConcurrency(){
-  const n = Number(document.getElementById("concurrency").value) || 2;
-  return Math.max(1, Math.min(8, n));
-}
-
-
-/* =========================================================
-   FILE PICKER
-========================================================= */
-
-function openFilePicker(){
-  if(images.length >= MAX_IMAGES){
-    alert(`Maximum ${MAX_IMAGES} images allowed.`);
-    return;
-  }
+/* ---------- files ---------- */
+const fileInput = $("file");
+function pick(){
+  if(images.length >= MAX) return toast("Maximum " + MAX + " images.", "err");
   fileInput.click();
 }
+fileInput.addEventListener("change", e => { addFiles(e.target.files); fileInput.value = ""; });
+const drop = $("drop");
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("drag"); addFiles(e.dataTransfer.files); });
 
-fileInput.addEventListener("change", event => {
-  handleFiles(event.target.files);
-  fileInput.value = "";
-});
-
-
-/* =========================================================
-   DRAG DROP
-========================================================= */
-
-uploadBox.addEventListener("dragover", event => {
-  event.preventDefault();
-  uploadBox.classList.add("drag");
-});
-
-uploadBox.addEventListener("dragleave", () => {
-  uploadBox.classList.remove("drag");
-});
-
-uploadBox.addEventListener("drop", event => {
-  event.preventDefault();
-  uploadBox.classList.remove("drag");
-  handleFiles(event.dataTransfer.files);
-});
-
-
-/* =========================================================
-   HANDLE FILES
-========================================================= */
-
-function handleFiles(fileList){
-  const files = Array.from(fileList);
-  if(!files.length) return;
-
-  const remaining = MAX_IMAGES - images.length;
-
-  if(remaining <= 0){
-    alert(`Maximum ${MAX_IMAGES} images allowed.`);
-    return;
-  }
-
-  const selected = files.slice(0,remaining);
+function addFiles(list){
+  const room = MAX - images.length;
   let added = 0;
-
-  selected.forEach(file => {
-    if(!/^image\/(png|jpeg|jpg|webp)$/i.test(file.type)) return;
-
-    images.push({
-      file:file,
-      url:URL.createObjectURL(file),
-      name:file.name,
-      status:"waiting",
-      metadata:null,
-      error:"",
-      optimizedFile:null
-    });
-
+  Array.from(list).slice(0, room).forEach(f => {
+    if(!/^image\/(png|jpe?g|webp)$/i.test(f.type)) return;
+    images.push({ file:f, url:URL.createObjectURL(f), name:f.name, status:"waiting", meta:null, error:"", opt:null });
     added++;
   });
-
-  if(files.length > remaining){
-    alert(`Only ${MAX_IMAGES} images are allowed.`);
-  }
-
-  if(!added){
-    alert("No supported image files found.");
-  }
-
-  updateUI();
+  if(!added) toast("No supported images found.", "err");
+  render();
 }
 
-
-/* =========================================================
-   UI
-========================================================= */
-
-function updateUI(){
-  counter.textContent = `${images.length} / ${MAX_IMAGES} images`;
-  emptyState.style.display = images.length ? "none" : "block";
-  updateProgress();
-  renderCards();
-}
-
-function updateProgress(){
-  const total = images.length;
+/* ---------- render ---------- */
+function render(){
+  $("cnt").textContent = images.length + " / " + MAX + " images";
+  $("empty").style.display = images.length ? "none" : "block";
   const done = images.filter(x => x.status === "success").length;
-  const failed = images.filter(x => x.status === "error").length;
-  const loading = images.filter(x => x.status === "loading").length;
+  const fail = images.filter(x => x.status === "error").length;
+  const load = images.filter(x => x.status === "loading").length;
+  $("sub").textContent = images.length ? "✓ " + done + "   ✕ " + fail + "   ⏳ " + load : "";
+  $("prog").style.width = images.length ? ((done + fail) / images.length * 100) + "%" : "0";
 
-  if(!total){
-    progress.textContent = "";
-    return;
-  }
-
-  progress.textContent = `✓ ${done}  •  ✕ ${failed}  •  ⏳ ${loading}`;
+  $("grid").innerHTML = images.map((it,i) => {
+    const m = it.meta;
+    const stTxt = it.status === "loading" ? "⏳ " + esc(it.error || "Generating…")
+      : it.status === "success" ? "✓ Metadata generated"
+      : it.status === "error" ? "✕ " + esc(it.error || "Failed")
+      : "Ready";
+    const body = m ? `
+      <div><div class="lb">Title</div><div class="vl">${esc(m.title)}</div></div>
+      <div><div class="lb">Description</div><div class="vl">${esc(m.description)}</div></div>
+      <div><div class="lb">Keywords (${m.keywords.length})</div><div class="kw">${m.keywords.map(k => "<span>" + esc(k) + "</span>").join("")}</div></div>
+      <div><div class="lb">Category</div><div class="vl">${esc(m.category)}</div></div>` : "";
+    const acts = m
+      ? `<button class="btn" onclick="editMeta(${i})">✏ Edit</button><button class="btn" onclick="copyMeta(${i})">📋 Copy</button>`
+      : `<button class="btn" onclick="generateOne(${i})" ${it.status === "loading" ? "disabled" : ""}>✨ Generate</button><button class="btn" onclick="removeImg(${i})">🗑</button>`;
+    return `<div class="card"><img src="${it.url}" alt=""><div class="cb"><div class="nm">${esc(it.name)}</div><div class="st ${it.status}">${stTxt}</div>${body}<div class="acts">${acts}</div></div></div>`;
+  }).join("");
 }
 
-
-/* =========================================================
-   RENDER CARDS
-========================================================= */
-
-function renderCards(){
-  grid.innerHTML = "";
-
-  images.forEach((item,index) => {
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const statusClass =
-      item.status === "loading" ? "loading" :
-      item.status === "success" ? "success" :
-      item.status === "error" ? "error" : "";
-
-    let metadataHTML = "";
-
-    if(item.metadata){
-      const m = item.metadata;
-
-      metadataHTML = `
-        <div class="meta show">
-          <div class="meta-item">
-            <div class="meta-label">Title</div>
-            <div class="meta-value">${escapeHTML(m.title || "")}</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">Description</div>
-            <div class="meta-value">${escapeHTML(m.description || "")}</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">Keywords</div>
-            <div class="keywords">
-              ${(m.keywords || []).map(k => `<span class="keyword">${escapeHTML(k)}</span>`).join("")}
-            </div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">Category</div>
-            <div class="meta-value">${escapeHTML(m.category || "")}</div>
-          </div>
-        </div>
-      `;
-    }
-
-    let actionHTML;
-
-    if(item.metadata){
-      actionHTML = `
-        <button class="btn" onclick="editMetadata(${index})">✏ Edit</button>
-        <button class="btn" onclick="copyMetadata(${index})">📋 Copy</button>
-      `;
-    }else{
-      actionHTML = `
-        <button class="btn" onclick="generateOne(${index})" ${item.status === "loading" ? "disabled" : ""}>✨ Generate</button>
-        <button class="btn" onclick="removeImage(${index})">🗑 Remove</button>
-      `;
-    }
-
-    card.innerHTML = `
-      <img class="card-image" src="${item.url}" alt="">
-      <div class="card-body">
-        <div class="card-name">${escapeHTML(item.name)}</div>
-        <div class="status ${statusClass}">${getStatusText(item)}</div>
-        ${metadataHTML}
-        <div class="card-actions">${actionHTML}</div>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
-}
-
-function getStatusText(item){
-  if(item.status === "loading")
-    return item.error ? `⏳ ${escapeHTML(item.error)}` : "⏳ Generating...";
-  if(item.status === "success") return "✓ Metadata generated";
-  if(item.status === "error") return `✕ Failed — ${escapeHTML(item.error || "Try again")}`;
-  return "Ready — click Generate";
-}
-
-
-/* =========================================================
-   GENERATE ALL
-========================================================= */
-
+/* ---------- generation ---------- */
 async function generateAll(){
-  if(generationRunning) return;
+  if(running) return;
+  if(!images.length) return toast("Upload images first.", "err");
+  const ks = getKeys();
+  if(!ks.length){ toast("Add your OpenRouter API key first.", "err"); openDrawer(); return; }
 
-  if(!images.length){
-    alert("Please upload at least one image first.");
-    return;
-  }
+  running = true; kp = 0;
+  $("genAll").disabled = true; $("genAll").textContent = "⏳ Generating…";
 
-  const keys = getSessionKeys();
+  const queue = images.map((it,i) => i).filter(i => images[i].status !== "success");
+  let next = 0;
+  const worker = async () => {
+    while(next < queue.length) await generate(queue[next++], ks);
+  };
+  await Promise.all(Array.from({ length: Math.min(getPar(), queue.length) }, worker));
 
-  if(!keys.length){
-    alert("Please add your OpenRouter API key in Settings first.");
-    openSettings();
-    return;
-  }
-
-  generationRunning = true;
-  generateAllBtn.disabled = true;
-  generateAllBtn.textContent = "⏳ Generating...";
-
-  keyPointer = 0;
-
-  const queue = images
-    .map((item,index) => ({ item, index }))
-    .filter(x => x.item.status !== "success");
-
-  let nextIndex = 0;
-
-  async function worker(){
-    while(true){
-      const position = nextIndex++;
-      if(position >= queue.length) return;
-      await generateImage(queue[position].index, keys);
-    }
-  }
-
-  const workerCount = Math.min(getConcurrency(), queue.length);
-  const workers = [];
-
-  for(let i = 0; i < workerCount; i++){
-    workers.push(worker());
-  }
-
-  await Promise.all(workers);
-
-  generationRunning = false;
-  generateAllBtn.disabled = false;
-  generateAllBtn.textContent = "✨ Generate Metadata";
-
-  updateUI();
-
-  const success = images.filter(x => x.status === "success").length;
-  const failed = images.filter(x => x.status === "error").length;
-
-  alert(`Generation complete.\n\n✓ Success: ${success}\n✕ Failed: ${failed}`);
+  running = false;
+  $("genAll").disabled = false; $("genAll").textContent = "✨ Generate Metadata";
+  render();
+  const ok = images.filter(x => x.status === "success").length;
+  const bad = images.filter(x => x.status === "error").length;
+  toast("Done — ✓ " + ok + "  ✕ " + bad, bad ? "err" : "ok");
 }
 
-
-/* =========================================================
-   GENERATE ONE
-========================================================= */
-
-async function generateOne(index){
-  if(images[index]?.status === "loading") return;
-
-  const keys = getSessionKeys();
-
-  if(!keys.length){
-    alert("Please add your OpenRouter API key first.");
-    openSettings();
-    return;
-  }
-
-  await generateImage(index, keys);
-  updateUI();
+async function generateOne(i){
+  const ks = getKeys();
+  if(!ks.length){ toast("Add your OpenRouter API key first.", "err"); openDrawer(); return; }
+  await generate(i, ks);
+  render();
 }
 
+async function generate(i, ks){
+  const it = images[i];
+  if(!it) return;
+  it.status = "loading"; it.error = ""; render();
 
-/* =========================================================
-   GENERATE IMAGE (key rotation + retry)
-========================================================= */
-
-async function generateImage(index, keys){
-  const item = images[index];
-  if(!item) return;
-
-  item.status = "loading";
-  item.error = "";
-
-  renderCards();
-  updateProgress();
-
-  let lastError = null;
-  let stopAll = false;
-
-  for(let k = 0; k < keys.length && !stopAll; k++){
-
-    const key = getNextKey(keys);
-
-    for(let retry = 0; retry <= MAX_RETRIES; retry++){
-
+  let last = null, stop = false;
+  for(let k = 0; k < ks.length && !stop; k++){
+    const key = ks[kp++ % ks.length];
+    for(let r = 0; r <= RETRIES; r++){
       try{
-
-        if(!item.optimizedFile){
-          item.optimizedFile = await optimizeImage(item.file);
-        }
-
-        const metadata = await callOpenRouter(item.optimizedFile, item.name, key);
-
-        item.metadata = normalizeMetadata(metadata);
-        item.status = "success";
-        item.error = "";
-
-        renderCards();
-        updateProgress();
+        if(!it.opt) it.opt = await shrink(it.file);
+        it.meta = normalize(await callModel(it.opt, it.name, key));
+        it.status = "success"; it.error = "";
+        render();
         return;
-
-      }catch(error){
-
-        lastError = error;
-        console.warn("OpenRouter error:", error);
-
-        if(isRetryableError(error) && retry < MAX_RETRIES){
-          item.error = "Model busy — retrying...";
-          renderCards();
-          await sleep(retry === 0 ? 1500 : 3000);
+      }catch(e){
+        last = e;
+        if(retryable(e) && r < RETRIES){
+          it.error = "Model busy — retrying…"; render();
+          await new Promise(res => setTimeout(res, r ? 3000 : 1500));
           continue;
         }
-
-        /* Wrong model / bad request: other keys won't help. */
-        if(/ 40[04]:/.test(error.message || "")){
-          stopAll = true;
-        }
-
+        if(/ 40[04]:/.test(e.message || "")) stop = true;
         break;
       }
     }
   }
-
-  item.status = "error";
-  item.metadata = null;
-  item.error = getFriendlyError(lastError);
-
-  renderCards();
-  updateProgress();
+  it.status = "error"; it.meta = null; it.error = friendly(last);
+  render();
 }
 
-function getNextKey(keys){
-  const key = keys[keyPointer % keys.length];
-  keyPointer = (keyPointer + 1) % keys.length;
-  return key;
-}
-
-
-/* =========================================================
-   OPENROUTER VISION
-========================================================= */
-
-async function callOpenRouter(file, fileName, key){
-  const base64 = await fileToBase64(file);
-  const prompt = buildPrompt();
-
-  const response = await fetch(OPENROUTER_URL,{
-    method:"POST",
-    headers: buildHeaders(key),
+async function callModel(file, name, key){
+  const b64 = await toB64(file);
+  const r = await fetch(URL_CHAT, {
+    method:"POST", headers: headers(key),
     body: JSON.stringify({
-      model:getModel(),
-      messages:[
-        {
-          role:"system",
-          content:"You are an expert stock image metadata generator. Analyze the image carefully and return accurate commercial stock metadata. Reply with JSON only."
-        },
-        {
-          role:"user",
-          content:[
-            { type:"text", text:`${prompt}\n\nImage File Name: ${fileName}` },
-            { type:"image_url", image_url:{ url:`data:${file.type};base64,${base64}` } }
-          ]
-        }
+      model: getModel(),
+      messages: [
+        { role:"system", content:"You are an expert stock image metadata generator. Reply with JSON only." },
+        { role:"user", content:[
+          { type:"text", text: prompt() + "\n\nImage file name: " + name },
+          { type:"image_url", image_url:{ url:"data:" + file.type + ";base64," + b64 } }
+        ]}
       ],
-      temperature:0.35,
-      max_tokens:2000
+      temperature: 0.35,
+      max_tokens: 2000
     })
   });
+  const t = await r.text();
+  if(!r.ok) throw new Error("OpenRouter " + r.status + ": " + errText(t));
+  let d;
+  try{ d = JSON.parse(t); }catch{ throw new Error("OpenRouter returned invalid response."); }
+  if(d?.error) throw new Error("OpenRouter " + (d.error.code || 500) + ": " + (d.error.message || "provider error"));
+  let txt = d?.choices?.[0]?.message?.content;
+  if(Array.isArray(txt)) txt = txt.map(p => p?.text || "").join("");
+  if(!txt) throw new Error("Model returned no metadata — try another model.");
+  return parseJSON(txt);
+}
 
-  const responseText = await response.text();
+function prompt(){
+  const n = Math.max(5, Math.min(50, Number($("kwn").value) || 35));
+  const c = $("custom").value.trim();
+  return `You are an expert stock photography metadata specialist.
+Analyze the image carefully and generate metadata suitable for ${$("site").value}.
 
-  if(!response.ok){
-    throw new Error(`OpenRouter ${response.status}: ${extractMessage(responseText)}`);
+TITLE: ${$("tstyle").value} style. Accurate, natural, searchable, commercially useful. Do not invent things that are not visible.
+DESCRIPTION: ${$("dlen").value} length. Describe only what is visible.
+KEYWORDS: exactly ${n} relevant keywords, most important first, commercially useful. Mention PNG/isolated/transparent only when visually appropriate.
+CATEGORY: the most suitable stock category.
+
+Return ONLY valid JSON, no markdown:
+{"title":"string","description":"string","keywords":["k1","k2"],"category":"string"}
+
+Additional instructions: ${c || "None"}`;
+}
+
+function normalize(d){
+  let k = d?.keywords || [];
+  if(typeof k === "string") k = k.split(",");
+  if(!Array.isArray(k)) k = [];
+  return {
+    title: String(d?.title || ""),
+    description: String(d?.description || ""),
+    keywords: k.map(x => String(x).trim()).filter(Boolean),
+    category: String(d?.category || "General")
+  };
+}
+
+function parseJSON(s){
+  try{ return JSON.parse(s); }catch{}
+  const c = s.replace(/<think>[\s\S]*?<\/think>/gi,"").replace(/```json/gi,"").replace(/```/g,"").trim();
+  try{ return JSON.parse(c); }catch{}
+  const a = c.indexOf("{"), b = c.lastIndexOf("}");
+  if(a !== -1 && b > a){ try{ return JSON.parse(c.slice(a, b + 1)); }catch{} }
+  throw new Error("AI returned invalid JSON.");
+}
+
+/* ---------- errors ---------- */
+function retryable(e){
+  const m = (e?.message || "").toLowerCase();
+  return ["429","500","502","503","504","408","rate","quota","overloaded","temporarily","network","failed to fetch","timeout","invalid json","no metadata"].some(x => m.includes(x));
+}
+function friendly(e){
+  const m = e?.message || "Unknown error", l = m.toLowerCase();
+  if(m.includes(" 401") || l.includes("no auth") || l.includes("invalid api key")) return "Invalid API key";
+  if(m.includes(" 402") || l.includes("credits")) return "Not enough credits — use a :free model";
+  if(m.includes(" 403")) return "Access denied / content moderated";
+  if(m.includes(" 404") || l.includes("no endpoints")) return "Model not available — pick another model";
+  if(l.includes("image") && (l.includes("support") || l.includes("modalit"))) return "This model can't read images";
+  if(m.includes("429") || l.includes("rate limit")) return "Rate limit — wait or add more keys";
+  if(/ 50[0234]/.test(m)) return "AI server busy — try again";
+  if(l.includes("failed to fetch") || l.includes("network")) return "Network error";
+  return m.length > 100 ? m.slice(0, 100) + "…" : m;
+}
+
+/* ---------- images ---------- */
+const toB64 = f => new Promise((ok, no) => {
+  const r = new FileReader();
+  r.onload = () => ok(String(r.result).split(",")[1]);
+  r.onerror = no;
+  r.readAsDataURL(f);
+});
+
+function shrink(file){
+  if(file.size < 1200000) return Promise.resolve(file);
+  return new Promise((ok, no) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(u);
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const s = MAXPX / Math.max(w, h);
+      if(s < 1){ w = Math.round(w * s); h = Math.round(h * s); }
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      const x = c.getContext("2d");
+      x.fillStyle = "#fff"; x.fillRect(0, 0, w, h);
+      x.drawImage(img, 0, 0, w, h);
+      c.toBlob(b => b ? ok(new File([b], file.name.replace(/\.[^.]+$/, ".jpg"), { type:"image/jpeg" })) : no(new Error("Image optimization failed.")), "image/jpeg", 0.82);
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); no(new Error("Failed to load image.")); };
+    img.src = u;
+  });
+}
+
+function removeImg(i){ URL.revokeObjectURL(images[i].url); images.splice(i, 1); render(); }
+function clearAll(){ images.forEach(x => URL.revokeObjectURL(x.url)); images = []; render(); }
+
+/* ---------- edit / copy / export ---------- */
+function editMeta(i){
+  editing = i;
+  const m = images[i].meta;
+  $("eT").value = m.title; $("eD").value = m.description; $("eK").value = m.keywords.join(", "); $("eC").value = m.category;
+  $("modal").classList.add("on");
+}
+function closeEdit(){ $("modal").classList.remove("on"); editing = null; }
+function saveEdit(){
+  if(editing === null) return;
+  images[editing].meta = {
+    title: $("eT").value.trim(),
+    description: $("eD").value.trim(),
+    keywords: $("eK").value.split(",").map(k => k.trim()).filter(Boolean),
+    category: $("eC").value.trim()
+  };
+  closeEdit(); render();
+}
+
+async function copyMeta(i){
+  const m = images[i].meta;
+  const t = "Title: " + m.title + "\nDescription: " + m.description + "\nKeywords: " + m.keywords.join(", ") + "\nCategory: " + m.category;
+  try{ await navigator.clipboard.writeText(t); }
+  catch{
+    const a = document.createElement("textarea");
+    a.value = t; document.body.appendChild(a); a.select();
+    try{ document.execCommand("copy"); }catch{}
+    a.remove();
   }
+  toast("Copied ✓", "ok");
+}
 
-  let data;
-  try{
-    data = JSON.parse(responseText);
-  }catch{
-    throw new Error("OpenRouter returned invalid response.");
-  }
+function exportCSV(){
+  const rows = images.filter(x => x.meta);
+  if(!rows.length) return toast("Nothing to export yet.", "err");
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  let csv = "Filename,Title,Description,Keywords,Category\n";
+  rows.forEach(x => { csv += [q(x.name), q(x.meta.title), q(x.meta.description), q(x.meta.keywords.join(", ")), q(x.meta.category)].join(",") + "\n"; });
+  const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8;" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = "stock_metadata.csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
 
-  /* Some providers return 200 with an error object inside. */
-  if(data?.error){
-    const code = data.error.code || 500;
-    throw new Error(`OpenRouter ${code}: ${data.error.message || "provider error"}`);
-  }
-
-  let text = data?.choices?.[0]?.message?.content;
-
-  if(Array.isArray(text)){
-    text = text.map(p => p?.text || "").join("");
-  }
-
-  if(!text){
-    throw new
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+</script>
+</body>
+</html>
