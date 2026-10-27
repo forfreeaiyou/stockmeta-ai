@@ -142,9 +142,9 @@ footer{text-align:center;color:#4c4c68;font-size:13px;padding:26px;border-top:1p
       </div>
       <div class="f" style="margin-top:18px">
         <label>Model (any OpenRouter model ID)</label>
-        <input id="model" list="models" placeholder="google/gemma-3-27b-it:free" autocomplete="off">
-        <datalist id="models"></datalist>
-        <div class="hint">The model must accept images. IDs ending in <b>:free</b> are free.</div>
+        <input id="model" list="models" placeholder="openrouter/free" autocomplete="off">
+        <datalist id="models"><option value="openrouter/free">Free Models Router (auto-picks a working free model)</option></datalist>
+        <div class="hint">Recommended: <b>openrouter/free</b> (auto-picks a working free vision model). To see the full list, clear this box and click it after loading models.</div>
       </div>
       <div class="two" style="margin-top:0">
         <button class="btn" onclick="loadModels(false)">📥 Vision models</button>
@@ -185,7 +185,10 @@ footer{text-align:center;color:#4c4c68;font-size:13px;padding:26px;border-top:1p
 const $ = id => document.getElementById(id);
 const URL_CHAT = "https://openrouter.ai/api/v1/chat/completions";
 const URL_MODELS = "https://openrouter.ai/api/v1/models";
-const DEFAULT_MODEL = "google/gemma-3-27b-it:free";
+const DEFAULT_MODEL = "openrouter/free";
+const FALLBACK_MODEL = "openrouter/free";
+const OLD_DEFAULT = "google/gemma-3-27b-it:free";
+let fbNotified = false;
 const MAX = 500, MAXPX = 1600, RETRIES = 2;
 
 /* ---------- safe storage (works even if localStorage is blocked) ---------- */
@@ -215,7 +218,9 @@ function init(){
     const k = JSON.parse(store.get("sm_keys") || "[]");
     if(Array.isArray(k) && k.length) keys = k;
   }catch{}
-  $("model").value = store.get("sm_model") || DEFAULT_MODEL;
+  let sm = store.get("sm_model");
+  if(!sm || sm === OLD_DEFAULT) sm = DEFAULT_MODEL;
+  $("model").value = sm;
   try{
     const s = JSON.parse(store.get("sm_settings") || "{}");
     for(const id of ["site","tstyle","dlen","kwn","par","custom"]) if(s[id] !== undefined && s[id] !== "") $(id).value = s[id];
@@ -302,7 +307,7 @@ async function loadModels(freeOnly){
     let list = (j.data || []).filter(m => (m?.architecture?.input_modalities || []).includes("image"));
     if(freeOnly) list = list.filter(m => String(m.id).endsWith(":free"));
     list.sort((a,b) => String(a.id).localeCompare(String(b.id)));
-    $("models").innerHTML = list.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.id)}</option>`).join("");
+    $("models").innerHTML = '<option value="openrouter/free">Free Models Router</option>' + list.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.id)}</option>`).join("");
     $("mstat").textContent = list.length + (freeOnly ? " free" : "") + " vision model(s) loaded — click the model box to pick one.";
   }catch(e){
     $("mstat").textContent = "Could not load list (" + e.message + "). You can type a model ID manually.";
@@ -398,18 +403,24 @@ async function generate(i, ks){
   if(!it) return;
   it.status = "loading"; it.error = ""; render();
 
-  let last = null, stop = false;
+  let model = getModel(), last = null, stop = false;
   for(let k = 0; k < ks.length && !stop; k++){
     const key = ks[kp++ % ks.length];
     for(let r = 0; r <= RETRIES; r++){
       try{
         if(!it.opt) it.opt = await shrink(it.file);
-        it.meta = normalize(await callModel(it.opt, it.name, key));
+        it.meta = normalize(await callModel(it.opt, it.name, key, model));
         it.status = "success"; it.error = "";
         render();
         return;
       }catch(e){
         last = e;
+        if(/ 404:/.test(e.message || "") && model !== FALLBACK_MODEL){
+          model = FALLBACK_MODEL;
+          if(!fbNotified){ fbNotified = true; toast("Selected model is unavailable — using openrouter/free instead.", "err"); }
+          r--;
+          continue;
+        }
         if(retryable(e) && r < RETRIES){
           it.error = "Model busy — retrying…"; render();
           await new Promise(res => setTimeout(res, r ? 3000 : 1500));
@@ -424,12 +435,12 @@ async function generate(i, ks){
   render();
 }
 
-async function callModel(file, name, key){
+async function callModel(file, name, key, model){
   const b64 = await toB64(file);
   const r = await fetch(URL_CHAT, {
     method:"POST", headers: headers(key),
     body: JSON.stringify({
-      model: getModel(),
+      model: model || getModel(),
       messages: [
         { role:"system", content:"You are an expert stock image metadata generator. Reply with JSON only." },
         { role:"user", content:[
@@ -438,7 +449,7 @@ async function callModel(file, name, key){
         ]}
       ],
       temperature: 0.35,
-      max_tokens: 2000
+      max_tokens: 4000
     })
   });
   const t = await r.text();
@@ -492,8 +503,9 @@ function parseJSON(s){
 
 /* ---------- errors ---------- */
 function retryable(e){
-  const m = (e?.message || "").toLowerCase();
-  return ["429","500","502","503","504","408","rate","quota","overloaded","temporarily","network","failed to fetch","timeout","invalid json","no metadata"].some(x => m.includes(x));
+  const raw = e?.message || "", m = raw.toLowerCase();
+  if(/OpenRouter (408|429|5\d\d):/.test(raw)) return true;
+  return ["rate limit","rate-limit","rate_limit","quota","overloaded","temporarily","network","failed to fetch","timeout","invalid json","no metadata"].some(x => m.includes(x));
 }
 function friendly(e){
   const m = e?.message || "Unknown error", l = m.toLowerCase();
